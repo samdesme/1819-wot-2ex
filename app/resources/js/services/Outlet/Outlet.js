@@ -5,7 +5,7 @@ class Outlet {
   
     
 
-    async outletRequest(tokenRes, state) {
+    async outletRequest(tokenRes, state, deviceId) {
 
         return axios.request({
             baseURL: `https://eu-wap.tplinkcloud.com/?token=` + tokenRes + `&appName=Kasa_Android&termID=5CD852A5-125F-40E1-8D4A-B89B1A0E1F74&appVer=1.4.4.607&ospf=Android+6.0.1&netType=wifi&locale=
@@ -20,7 +20,7 @@ class Outlet {
             data: {
                 "method":"passthrough",
                 "params":{
-                "deviceId":"80068F6F641D26B981D9F0BDBF83C83E1B87AD5E",
+                "deviceId": deviceId,
                 "requestData":"{\"system\":{\"set_relay_state\":{\"state\":" + state + "}}}"
                 }
             }
@@ -51,7 +51,20 @@ class Outlet {
 
     }
 
-    async outletState(tokenRes) {
+    async outletGetList(tokenRes) {
+
+        return axios.request({
+            baseURL: 'https://eu-wap.tplinkcloud.com/?token=' + tokenRes,
+            method: 'post',
+            data: {
+                "method":"getDeviceList"
+            },
+        })
+       
+
+    }
+
+    async outletInfo(tokenRes, deviceId) {
 
         return axios.request({
             baseURL: `https://eu-wap.tplinkcloud.com/?token=` + tokenRes,
@@ -59,9 +72,41 @@ class Outlet {
             data: {
                 "method": "passthrough",
                 "params": {
-                "deviceId": "80068F6F641D26B981D9F0BDBF83C83E1B87AD5E",
+                "deviceId": deviceId,
                 "requestData": "{\"system\":{\"get_sysinfo\":null}}"
                 }
+            }
+          });
+
+    }
+
+    async outletUsage(tokenRes, deviceId) {
+
+        return axios.request({
+            baseURL: `https://eu-wap.tplinkcloud.com/?token=` + tokenRes,
+            method: 'post',
+            data: {
+                "method": "passthrough",
+                "params": {
+                "deviceId": deviceId,
+                "requestData": "{\"emeter\":{\"get_realtime\":{}}}"
+            }
+            }
+          });
+
+    }
+
+    async outletDaystat(tokenRes, deviceId, month, year) {
+
+        return axios.request({
+            baseURL: `https://eu-wap.tplinkcloud.com/?token=` + tokenRes,
+            method: 'post',
+            data: {
+                "method": "passthrough",
+                "params": {
+                "deviceId": deviceId,
+                "requestData": "{\"emeter\":{\"get_daystat\":{\"month\":" + month + ",\"year\":" + year + "}}}"
+            }
             }
           });
 

@@ -6,7 +6,10 @@ module.exports = {
         red: '#FF1A70',
         lightgrey: '#F2F2F2',
         dimmedTxt: '#707070',
-        darkgrey: '#7A7A7C'
+        darkgrey: '#7A7A7C',
+        medgrey: '#9D9D9D',
+        bootstrapGrey: '#DEE2E6',
+        blue: 'rgb(26,145,233)'
       }
     }
   },
