@@ -1,22 +1,32 @@
 <template>
-<div class="bg-white m-6 p-6 h-56 shadow-lg rounded-lg">
-    <a  v-on:click="toggleOutlet()" v-bind:class = "(plug.status == 1)?'bg-green':'bg-red'" class="block float-left shadow rounded-full h-32 w-32 flex items-center justify-center"></a>
+<div>
+<sidebar>
 
-    <div class="h-32 mx-16 float-left">
+</sidebar>
+    <div class="float-left bg-white m-6 p-6 h-56 shadow-lg rounded-lg">
+        <a  v-on:click="toggleOutlet()" v-bind:class = "(plug.status == 1)?'bg-green':'bg-red'" class="block float-left shadow rounded-full h-32 w-32 flex items-center justify-center"></a>
 
-        <h1>{{plug.name}}</h1>
-        <p class="text-dimmedTxt">Description</p>
-        <p>status: {{plug.status}}</p>
+        <div class="h-32 mx-16 float-left">
+
+            <h1>{{plug.name}}</h1>
+            <p class="text-dimmedTxt">Description</p>
+            <p>status: {{plug.status}}</p>
 
 
+        </div>
     </div>
 </div>
 </template>
 
 <script>
 import Outlet from '../services/Outlet/Outlet';
+import Sidebar from './partials/Sidebar';
 
     export default {
+
+    components: {
+        Sidebar,
+    },
 
     data() {
         return {
