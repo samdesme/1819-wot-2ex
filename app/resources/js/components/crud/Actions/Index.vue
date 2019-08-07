@@ -23,7 +23,7 @@
          
           <ul class="text-dimmedTxt pt-3 border-t border-bootstrapGrey">
               <li v-if="temps.length" v-for="temp in temps">
-                    <span class="inline-block text-xxs pr-3 pb-1 align-middle"> &#9679; </span> {{ temp }}
+                    <span class="inline-block text-xxs pr-3 pb-1 align-middle"> &#9679; </span> {{ temp.name }}
                 </li>
                
               </ul>
@@ -91,16 +91,19 @@
 
 
       <div class="float-left relative bg-white m-6 px-6 pt-12 pb-6 w-full h-auto shadow-lg rounded-lg">
-        <a href="#" v-bind:class="(!sensors.cords == 0) ? 'text-green border-green':'text-bootstrapGrey border-bootstrapGrey'" class="block float-left rounded-full w-20 h-20 flex items-center justify-center border cursor-default">
+        <a href="#" :class="(cordsTotalStatus.val == 0) ?'bg-transparent text-red border-red' : (sensors.cords == 0) ? 'text-bootstrapGrey border-bootstrapGrey' : (switches.cords == 0) ?  'bg-transparent text-green border-green':'gradGreen text-white'"
+        class="block float-left rounded-full w-20 h-20 flex items-center justify-center border cursor-default">
+        
+
           <i class="block fas fa-bolt mt-2 text-4xl"></i>
         </a>
         <div class="h-32 ml-16 float-left w-1/2 h-auto">
           <h1 class="text-3xl">Extention cables</h1>
-          <p class="mb-4">Plugs labeled as extention cables will be turned off when they reach <span class="font-semibold text-green">a low of 100 mW</span></p>
+          <p class="mb-4">Plugs labeled as extention cables will be turned off when they reach <span class="font-semibold text-green">a low of 300 mW</span></p>
 
            <ul class="text-dimmedTxt pt-3 border-t border-bootstrapGrey">
               <li v-if="cords.length" v-for="cord in cords">
-                    <span class="inline-block text-xxs pr-3 pb-1 align-middle"> &#9679; </span> {{ cord }}
+                    <span class="inline-block text-xxs pr-3 pb-1 align-middle"> &#9679; </span> {{ cord.name }}
                 </li>
 
             </ul>
@@ -108,17 +111,25 @@
         </div>
 
         <div class="text-right float-right w-1/6">
-         <label :class="(sensors.cords == 1) ?'text-dimmedTxt':'text-bootstrapGrey'" class=" text-2xl" for="totalMw" > {{totalMw}} mW</label>
+         <label v-if="cordsTotalStatus.val == 1" :class="(sensors.cords == 1) ?'text-dimmedTxt':'text-bootstrapGrey'" class=" text-2xl" for="totalMw" > {{totalMw}} mW</label>
+         <label v-else class="text-xl text-red" for="cordsTotalStatus" > {{cordsTotalStatus.text}}</label>
+
              <input class="" id="totalMw" type="hidden" v-model="totalMw">
              <input class="" id="cordSensors" type="hidden" v-model="sensors.cords">
+             <input class="" id="cordSwitch" type="hidden" v-model="switches.cords">
+             <input class="" id="cordsTotalStatus" type="hidden" v-model="cordsTotalStatus">
+
+
 
 
              <a @click.prevent="toggleSensor('cord',sensors.cords, cords.length)"
-              :class="(cords.length) ? 'cursor-pointer hover:bg-gray-100 text-gray-800 border-gray-400' : 'text-bootstrapGrey border-bootstrapGrey cursor-default'"
+              :class="(!cords.length) ? 'text-bootstrapGrey border-bootstrapGrey cursor-default' : ( cordsTotalStatus.val == 0) ? 'text-bootstrapGrey border-bootstrapGrey cursor-default':'cursor-pointer hover:bg-gray-100 text-gray-800 border-gray-400'"
               class="block w-26 text-center bg-white mt-2 py-1 border rounded-full shadow no-underline text-sm">             
                <span v-if="sensors.cords == 0">Enable sensor</span>
               <span v-if="sensors.cords == 1">Disable sensor</span>
               </a>
+
+              
         </div>
 
       </div>
@@ -151,6 +162,12 @@ export default {
       lights: [],
       cords: [],
 
+      //tempsTotalStatus: 0,
+      cordsTotalStatus: {
+        val: 0,
+        text: 'Outlets offline'
+      },
+
       temp: '',
       emeterData: [],
       totalMw: 0,
@@ -168,11 +185,14 @@ export default {
       }
     };
   },
-  mounted() {},
+  mounted() {
+  },
   created() {
+
     this.checkTemp();
     this.getLists();
-    this.getCableData();
+     this.getCableData();
+
 
     //setInterval(this.checkTemp, 1000);
 
@@ -203,8 +223,11 @@ export default {
           } */
         });
     },
+
        freshCableUsage() {
-         if(!this.sensors.cords == 0){
+         if(!this.sensors.cords == 0 && this.cordsTotalStatus.val == 1){
+
+           
 
       Outlet.getToken().then(tokenRes => {
         Outlet.outletGetList(tokenRes.data.result.token).then(resDevices => {
@@ -220,13 +243,28 @@ export default {
 
                   this.totalMw = 0;
                   let toParse = JSON.parse(resUsage.data.result.responseData);
-
+                    
 
                     this.totalMw += Number(toParse.emeter.get_realtime.power_mw);
+                    this.emeterData[i].emeter.power_mw = toParse.emeter.get_realtime.power_mw;
 
 
-                  this.emeterData[i].emeter.power_mw =
-                    toParse.emeter.get_realtime.power_mw;
+                }).finally(() => {
+
+                 // console.log(this.totalMw);
+
+
+                  if (this.totalMw < 300){
+
+                  //console.log("LOWER THAN 300 => ", this.totalMw);
+
+                    this.switches.cords = 0;
+
+                    this.turnOffCords();
+                      
+                    }
+
+
                 });
               }
             }
@@ -240,6 +278,32 @@ export default {
          }
 
     },
+
+     turnOffCords() {
+
+console.log(this.cords)
+
+
+for (let i = 0; i < this.cords.length; i++) {
+
+      Outlet.getToken().then(tokenRes => {
+              Outlet.outletRequest(
+                tokenRes.data.result.token,
+                0,
+                this.cords[i].device_id
+              ).then(res => {
+
+                this.cordsTotalStatus.val = 0
+
+
+               let toParse = JSON.parse(res.data.result.responseData);
+                console.log('all cords turned off')
+
+              });
+            });
+        }
+
+     },
 
     getCableData() {
 
@@ -279,6 +343,13 @@ export default {
                     let toParse = JSON.parse(resState.data.result.responseData);
                     objExCord.status = toParse.system.get_sysinfo.relay_state;
 
+                    console.log(objExCord.status)
+                    if(objExCord.status == 1){
+
+                      this.cordsTotalStatus.val = 1
+
+                    }
+
                     Outlet.outletUsage(
                       tokenRes.data.result.token,
                       apiDeviceId
@@ -290,6 +361,12 @@ export default {
                       objExCord.emeter = toParse.emeter.get_realtime;
 
                       this.totalMw += Number(toParse.emeter.get_realtime.power_mw);
+
+                      if(this.totalMw > 300){
+
+                        this.switches.cords = 1
+
+                      }
 
                       this.emeterData.push(objExCord);
                     });
@@ -368,14 +445,21 @@ if(hasDataBool == true){
 
                             if (res.data[o].category_id == 1) {
                               
-                              this.temps.push(res.data[o].alias)
+                              this.temps.push({
+                                                  device_id: res.data[o].device_id,
+                                                  name: res.data[o].alias,
+
+                                                  })
 
                           
                             } else if(res.data[o].category_id == 2){
                                   this.lights.push(res.data[o].alias)
 
                             } else if(res.data[o].category_id == 3){
-                                  this.cords.push(res.data[o].alias)
+                                  this.cords.push({
+                                                  device_id: res.data[o].device_id,
+                                                  name: res.data[o].alias,
+                                                  })
                             } 
                           }
                 
