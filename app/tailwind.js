@@ -11,6 +11,9 @@ module.exports = {
         bootstrapGrey: '#DEE2E6',
         blue: 'rgb(26,145,233)'
       }
+    },
+    fontSize: {
+      'xxs': '.5rem'
     }
   },
   variants: {},

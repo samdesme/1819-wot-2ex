@@ -43,7 +43,7 @@ class DevicesController extends Controller
         $newDevice->alias = $request['alias'];
         $newDevice->device_id = $request['device_id'];
 
-        $newDevice->category_id = 4;
+        $newDevice->category_id = $request['category_id'];
 
 
         if ($newDevice->save()) {

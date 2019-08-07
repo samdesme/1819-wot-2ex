@@ -31,7 +31,7 @@
                             <label class="block text-dimmedTxt text-sm mb-2" for="category">
                                 CHOOSE TYPE OF DEVICE YOUR OUTLET IS CURRENTLY USING
                             </label>
-                             <v-select class="border rounded-lg w-full focus:outline-none focus:shadow-outline" placeholder="placeholder" label="name" :options="select" v-model="plug.category"></v-select>
+                             <v-select class="border rounded-lg w-full focus:outline-none focus:shadow-outline" label="name" :options="select" v-model="plug.category"></v-select>
 
                             </div> 
 
@@ -71,11 +71,13 @@ import 'vue-select/dist/vue-select.css';
                 alias: '',
                 device_id: '',
                 status: Number,
-                category: {}
+                category: {
+                  id: '',
+                  name: '',
+                }
             },
 
              select: [],
-            placeholder: 'select type...'
 
         };
     },
@@ -101,7 +103,17 @@ import 'vue-select/dist/vue-select.css';
 
 
                     this.plug.alias = res.data[0].alias
-                    this.plug.category_id = res.data[0].category_id
+                    this.plug.category.id = res.data[0].category_id
+
+
+                    axios.request({
+                        baseURL: 'http://localhost:8000/api/v1/categories/' + res.data[0].category_id,
+                        method: 'get',
+                }).then(resC => {
+
+                    this.plug.category.name = resC.data[0].name
+                    console.log(this.plug)
+                })
                 })
 
         })

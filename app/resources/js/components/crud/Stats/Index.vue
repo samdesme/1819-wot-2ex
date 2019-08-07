@@ -3,59 +3,48 @@
     <sidebar></sidebar>
 
     <div class="ml-64 mr-0 px-2">
-          
+      <div class="flex -mx-2">
+        <div class="w-2/3 px-6 relative bg-white m-6 p-6 h-auto shadow-lg rounded-lg">
+          <div class="h-16">
+            <h2 class="block float-left text-2xl w-full text-left">Usage timeline</h2>
+          </div>
 
-<div class="flex -mx-2">
-
-         <div class="w-2/3 px-6 relative bg-white m-6 p-6 h-auto shadow-lg rounded-lg">
-        <div class="h-16">
-          <h2 class="block float-left text-2xl w-full text-left">Usage timeline</h2>
+          <apexcharts type="line" height="350" :options="options" :series="options.series" />
         </div>
 
-      <apexcharts type="line" height="350" :options="options" :series="options.series" />
-    </div>
+        <div class="w-1/3 px-6 h-auto relative bg-white m-6 p-6 h-auto shadow-lg rounded-lg">
+          <div class="h-16">
+            <h2 class="block float-left text-2xl w-full text-left">Usage live feed</h2>
+          </div>
 
-
-
-       
-        
-      <div class="w-1/3 px-6 h-auto relative bg-white m-6 p-6 h-auto shadow-lg rounded-lg">
-        <div class="h-16">
-          <h2 class="block float-left text-2xl w-full text-left">Usage live feed</h2>
-        </div>
-
-        <table class="w-full m-auto userTable mt-6">
-          <thead class="h-12">
-            <tr class="text-medgrey border-b-2 border-bootstrapGrey font-normal text-left">
-              <th>I/O</th>
-              <th>Name</th>
-              <th class="w-48">Usage</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="outlet in orderedOutlets" class="h-12 border-b-2 border-bootstrapGrey">
-              <td class="text-center">
-                <!-- <span v-bind:class="(outlet.status == 1)?'gradGreen text-white':'bg-transparent text-green'" class="inline-block shadow rounded-full mx-1 w-10 h-10 border border-green items-center justify-center">
+          <table class="w-full m-auto userTable mt-6">
+            <thead class="h-12">
+              <tr class="text-medgrey border-b-2 border-bootstrapGrey font-normal text-left">
+                <th>I/O</th>
+                <th>Name</th>
+                <th class="w-48">Usage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="outlet in orderedOutlets" class="h-12 border-b-2 border-bootstrapGrey">
+                <td class="text-center">
+                  <!-- <span v-bind:class="(outlet.status == 1)?'gradGreen text-white':'bg-transparent text-green'" class="inline-block shadow rounded-full mx-1 w-10 h-10 border border-green items-center justify-center">
                                     <i class="block fas fa-power-off mt-2 text-2xl"></i>
-                </span>-->
+                  </span>-->
 
-                <i v-if="outlet.status == 1" class="fas fa-circle text-green"></i>
-                <i v-else-if="outlet.status == 0" class="fas fa-circle text-red"></i>
-                <i v-else class="far fa-circle text-bootstrapGrey"></i>
-              </td>
-              <td class="w-1/2">{{outlet.name}}</td>
-              <td>{{outlet.emeter.power_mw}} mW</td>
-            </tr>
-          </tbody>
-        </table>
+                  <i v-if="outlet.status == 1" class="fas fa-circle text-green"></i>
+                  <i v-else-if="outlet.status == 0" class="fas fa-circle text-red"></i>
+                  <i v-else class="far fa-circle text-bootstrapGrey"></i>
+                </td>
+                <td class="w-1/2">{{outlet.name}}</td>
+                <td>{{outlet.emeter.power_mw}} mW</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-
- </div>
- 
-      
     </div>
   </div>
-  
 </template>
 
 <script>
@@ -64,8 +53,8 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Outlet from "../../../services/Outlet/Outlet";
 import axios from "axios";
 import Pusher from "pusher-js";
-import ApexCharts from 'apexcharts'
-import VueApexCharts from 'vue-apexcharts'
+import ApexCharts from "apexcharts";
+import VueApexCharts from "vue-apexcharts";
 
 export default {
   name: "stats",
@@ -74,19 +63,17 @@ export default {
     Sidebar,
     FontAwesomeIcon,
     Pusher,
-    apexcharts: VueApexCharts,
-
+    apexcharts: VueApexCharts
   },
 
   data() {
-    
     return {
       outlets: [],
       statsOutlet: [],
       options: {
-            xaxis: {
-        type: "datetime",
-      },
+        xaxis: {
+          type: "datetime"
+        }
       }
     };
   },
@@ -97,176 +84,130 @@ export default {
     }
   },
 
-   
-mounted () {
-
-  
-},
+  mounted() {},
 
   created() {
-
-   
     this.usageTable();
     this.chart();
-
-     setInterval(this.freshUsage, 1000);
-     //setInterval(this.chart, 1000);
+    this.getDBalias();
     
+
+    setInterval(this.freshUsage, 1000);
   },
 
   methods: {
-
-     chart() {
-
+    chart() {
       let options = {
-      chart: {
-         id: "chart",
-       
-      },
-  
-      labels: [],
-      series: [],
+        chart: {
+          id: "chart"
+        },
+
+        labels: [],
+        series: [],
+
+        grid: {
+          padding: {
+            bottom: 20
+          }
+        }
+      };
 
 
-     grid: {
-       padding: {
-        bottom: 20,
- 
-    }, 
-     }
-     
-    }
-
-
-
-      //console.log("outlets arr =>",this.outlets)
-
-      var getDaysInMonth = function(month,year) {
+      var getDaysInMonth = function(month, year) {
         return new Date(year, month, 0).getDate();
-        };
+      };
 
-        let todayDate = new Date();
-        let thisMonth = todayDate.getMonth() +1;
-        let thisYear = todayDate.getFullYear();
-
-        
-          let deviceName = '';
-
+      let todayDate = new Date();
+      let thisMonth = todayDate.getMonth() + 1;
+      let thisYear = todayDate.getFullYear();
 
       Outlet.getToken().then(tokenRes => {
-      Outlet.outletGetList(tokenRes.data.result.token).then(resDevices => {
-          
-          
-      let arrDevices = resDevices.data.result.deviceList;
+        Outlet.outletGetList(tokenRes.data.result.token)
+          .then(resDevices => {
+            let arrDevices = resDevices.data.result.deviceList;
 
-  for (let u = 0; u < arrDevices.length; u++) {
-
-
-     Outlet.outletDaystat(tokenRes.data.result.token, arrDevices[u].deviceId, thisMonth, thisYear).then(resUsage => {
-
-              let toParse = JSON.parse(resUsage.data.result.responseData);
+            for (let u = 0; u < arrDevices.length; u++) {
+              Outlet.outletDaystat(
+                tokenRes.data.result.token,
+                arrDevices[u].deviceId,
+                thisMonth,
+                thisYear
+              ).then(resUsage => {
+                let toParse = JSON.parse(resUsage.data.result.responseData);
                 let dayList = toParse.emeter.get_daystat.day_list;
-                deviceName = arrDevices[u].alias
                 let xMonthArray = [];
+                
+                for (let i = 1; i <= getDaysInMonth(thisMonth, thisYear); i++) {
+                  if (dayList[i]) {
+                    if (
+                      dayList[i].month == thisMonth &&
+                      dayList[i].year == thisYear
+                    ) {
+                      if (u == 0) {
+                        let dayString = String(
+                          dayList[i].year +
+                            "-" +
+                            dayList[i].month +
+                            "-" +
+                            dayList[i].day
+                        );
 
-              for (let i = 1; i <= getDaysInMonth(thisMonth,thisYear); i++) {
+                        options.labels.push(dayString);
+                      }
 
-            console.log('getDaysInMonth(thisMonth,thisYear): ',getDaysInMonth(thisMonth,thisYear));
+                      xMonthArray.push(dayList[i].energy_wh);
+                    }
+                  } else {
+                    if (u == 0) {
+                      let dayString = String(
+                        thisYear + "-" + thisMonth + "-" + i
+                      );
 
-
-                 if(dayList[i]){
-
-
-                    if(dayList[i].month == thisMonth && dayList[i].year == thisYear){
-
-
-                         if(u == 0){
-                           
-                           
-
-
-                         let dayString = String(dayList[i].year + '-' + dayList[i].month + '-' + dayList[i].day)
-
-                              options.labels.push(dayString)
-
-                            }
-
-                      
-                          xMonthArray.push(dayList[i].energy_wh);
-
-                          
-                    } 
-                 } else {
-                       
-                       if(u == 0){
-
-
-                           let dayString = String(thisYear + '-' + thisMonth + '-' + i)
-
-                              options.labels.push(dayString)
-
-                            }
+                      options.labels.push(dayString);
+                    }
 
                     xMonthArray.push(0);
+                  }
+                }
 
 
-                 } 
-               
+                     axios
+                        .request({
+                          baseURL: "http://localhost:8000/api/v1/devices",
+                          method: "get"
+                        })
+                        .then(res => {
 
-              }
-              
+                          for (let o = 0; o < Object.keys(res.data).length; o++) {
+                            if (arrDevices[u].deviceId == res.data[o].device_id) {
+                              
+                              options.series.push({
+                              name: res.data[o].alias,
+                              data: xMonthArray
+                            });
 
-             
+                          
+                            }
+                          }
+                        
 
+                        });
+              });
+            }
 
-
-              options.series.push({
-                      name: deviceName,
-                      data: xMonthArray
-  
-                     //data: [406,909,55,693,444,965,687,224]
-
-
-                 })
-
+            this.options = options;
           })
+          .then(() => {
+            var chart = new ApexCharts(
+              document.querySelector("#chart"),
+              this.options
+            );
 
-          }
-
-
-               this.options = options;
-
-
-
-
-
-        }).then(() => {
-      var chart = new ApexCharts(
-      document.querySelector("#chart"),
-      this.options
-    );
-
-    chart.render();
-    console.log('this.options',this.options);
-
-
-});
-
-     });
-
-
-
-
-   // console.log("options arr =>", options)
-   // console.log(options.xaxis.categories)
-
-
-  
-
-
-
-   
-  },
+            chart.render();
+            console.log("this.options", this.options);
+          });
+      });
+    },
 
     freshUsage() {
       Outlet.getToken().then(tokenRes => {
@@ -345,29 +286,33 @@ mounted () {
       });
     },
 
-    lineGraph() {
+    getDBalias() {
+      axios
+        .request({
+          baseURL: "http://localhost:8000/api/v1/devices",
+          method: "get"
+        })
+        .then(res => {
+            console.log(this.options.series);
 
+          for (let i = 0; i < Object.keys(this.options.series).length; i++) {
 
+         
 
-    
+          for (let o = 0; o < Object.keys(res.data).length; o++) {
+            if (this.options.series[i].name == res.data[o].device_id) {
+
+               this.options.series[i].name = '';
+        
+              this.options.series.name = res.data[o].alias
+
+              console.log(this.options.series.name);
+            }
+          }
+        }
+
+        });
     }
-
-    /*           pusher(){
-
-    Pusher.logToConsole = true;
-
-    var pusher = new Pusher('049c0debdfbba42cf228', {
-      cluster: 'eu',
-      forceTLS: true
-    });
-
-    let data = this.outlets
-    var channel = pusher.subscribe('my-channel');
-    channel.bind('my-event', function(data) {
-      console.log(JSON.stringify(data));
-    });
-
-    }, */
   }
 };
 </script>

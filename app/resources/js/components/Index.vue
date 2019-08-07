@@ -9,6 +9,7 @@
         <a href="#"
           @click.prevent="toggleOutlet(plug.device_id)"
           v-bind:class="(plug.status == 1)?'gradGreen':'gradRed'"
+     
           class="block float-left shadow rounded-full w-20 h-20 flex items-center justify-center"
         >
            <i class="block box-sizing-off fas fa-power-off mt-2 text-2xl text-white"></i>
@@ -16,8 +17,30 @@
 
         <div class="h-32 mx-16 float-left">
           <h1 class="text-3xl">{{plug.alias}}</h1>
-          <p class="text-dimmedTxt">Category: {{plug.category_id}}</p>
-          <p class="hidden">status: {{plug.status}}</p>
+
+          <p class="text-dimmedTxt" v-if="plug.category_id == 1">
+
+             <i class="fas fa-thermometer-quarter pr-2 text-green text-lg"></i> Temperature device
+             
+          </p>
+          <p class="text-dimmedTxt" v-if="plug.category_id == 2">
+
+            <i class="far fa-lightbulb pr-2 text-green text-lg"></i> Lighting
+          
+          </p>
+          <p class="text-dimmedTxt" v-if="plug.category_id == 3">
+
+            <i class="fas fa-bolt pr-2 text-green text-lg"></i> Extention cable
+
+          </p>
+          <p class="text-dimmedTxt" v-if="plug.category_id == 4">
+
+            <i class="fas fa-cog pr-2 text-green text-lg"></i> Device
+
+          </p>
+
+          <input v-model="plug.status" type="hidden">
+
         </div>
 
 
@@ -108,7 +131,7 @@ export default {
 
                     if(newChangedDeviceDB.length){
 
-                     for (let g = 0; g < newChangedDeviceDB.length; g++) {
+                for (let g = 0; g < newChangedDeviceDB.length; g++) {
 
                   if (arrDevices[i].deviceId == newChangedDeviceDB[g].device_id) {
 
@@ -191,6 +214,7 @@ export default {
         if (deviceId == this.plugs[i].device_id) {
           if (this.plugs[i].status == 0) {
             //console.log(this.plugs[i].deviceId)
+            this.plugs[i].status = 1;
 
             Outlet.getToken().then(tokenRes => {
               Outlet.outletRequest(
@@ -204,6 +228,7 @@ export default {
             });
           } else if (this.plugs[i].status == 1) {
             //console.log(this.plugs[i].deviceId)
+            this.plugs[i].status = 0;
 
             Outlet.getToken().then(tokenRes => {
               Outlet.outletRequest(
@@ -212,19 +237,23 @@ export default {
                 this.plugs[i].device_id
               ).then(res => {
                 let toParse = JSON.parse(res.data.result.responseData);
-                this.plugs[i].status = toParse.system.get_sysinfo.relay_state;
+                //this.plugs[i].status = toParse.system.get_sysinfo.relay_state;
               });
             });
           }
         }
       }
 
-      /*
-       */
+ 
 
-      this.reloadPage();
+      //this.reloadPage();
     },
+  getCategory() {
 
+
+
+
+      },
     reloadPage() {
       window.location.reload();
     }
