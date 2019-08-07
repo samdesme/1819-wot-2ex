@@ -257,13 +257,12 @@ export default {
                       outletObj.name = res.data[o].alias;
                     }
                   }
-                  //console.log(arrDevices[i].deviceId);
 
                   Outlet.outletInfo(
                     tokenRes.data.result.token,
                     arrDevices[i].deviceId
                   ).then(resState => {
-                    //console.log(resState);
+
                     let toParse = JSON.parse(resState.data.result.responseData);
                     outletObj.status = toParse.system.get_sysinfo.relay_state;
 

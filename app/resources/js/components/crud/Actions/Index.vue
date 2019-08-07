@@ -30,12 +30,12 @@
           </div>
             
         <div class="text-right float-right w-1/6">
-         <label class="text-3xl" :class="(sensors.temp == 1) ?'text-dimmedTxt':'text-bootstrapGrey'" for="temp">{{temp}} °C </label>
+         <label class="text-2xl" :class="(sensors.temp == 1) ?'text-dimmedTxt':'text-bootstrapGrey'" for="temp">{{temp}} °C </label>
              <input class="" id="temp" type="hidden" v-model="temp">
               <input class="" id="tempSensors" type="hidden" v-model="sensors.temp">
 
 
-             <a  @click.prevent="toggleSensor('temp', sensors.temp)"
+             <a  @click.prevent="toggleSensor('temp', sensors.temp, temps.length)"
               :class="(temps.length) ? 'cursor-pointer hover:bg-gray-100 text-gray-800 border-gray-400' : 'text-bootstrapGrey border-bootstrapGrey cursor-default'"
               class="block w-26 text-center bg-white mt-2 py-1 border rounded-full shadow no-underline text-sm"> 
               <span v-if="sensors.temp == 1">Disable sensor</span>
@@ -70,13 +70,13 @@
 
            
         <div class="text-right float-right w-1/6">
-         <label class="text-3xl" :class="(sensors.lights == 1) ?'text-dimmedTxt':'text-bootstrapGrey'"> 
+         <label class="text-2xl" :class="(sensors.lights == 1) ?'text-dimmedTxt':'text-bootstrapGrey'"> 
            <i class="fas fa-sun"></i>
           </label>
               <input class="" id="light" type="hidden" v-model="sensors.lights">
 
              <!-- <input class="" type="hidden"> -->
-             <a @click.prevent="toggleSensor('light', sensors.lights)"
+             <a @click.prevent="toggleSensor('light', sensors.lights, lights.length)"
               :class="(lights.length) ? 'cursor-pointer hover:bg-gray-100 text-gray-800 border-gray-400' : 'text-bootstrapGrey border-bootstrapGrey cursor-default'"
               class="block w-26 text-center bg-white mt-2 py-1 border rounded-full shadow no-underline text-sm">
 
@@ -96,7 +96,7 @@
         </a>
         <div class="h-32 ml-16 float-left w-1/2 h-auto">
           <h1 class="text-3xl">Extention cables</h1>
-          <p class="mb-4">Plugs labeled as extention cables will be turned off when they reach <span class="font-semibold text-green">a low of 50kW/h</span></p>
+          <p class="mb-4">Plugs labeled as extention cables will be turned off when they reach <span class="font-semibold text-green">a low of 100 mW</span></p>
 
            <ul class="text-dimmedTxt pt-3 border-t border-bootstrapGrey">
               <li v-if="cords.length" v-for="cord in cords">
@@ -108,12 +108,12 @@
         </div>
 
         <div class="text-right float-right w-1/6">
-         <label :class="(sensors.cords == 1) ?'text-dimmedTxt':'text-bootstrapGrey'" class=" text-3xl" for="cord" > {{cord}} W</label>
-             <input class="" id="cord" type="hidden" v-model="cord">
+         <label :class="(sensors.cords == 1) ?'text-dimmedTxt':'text-bootstrapGrey'" class=" text-2xl" for="totalMw" > {{totalMw}} mW</label>
+             <input class="" id="totalMw" type="hidden" v-model="totalMw">
              <input class="" id="cordSensors" type="hidden" v-model="sensors.cords">
 
 
-             <a @click.prevent="toggleSensor('cord',sensors.cords)"
+             <a @click.prevent="toggleSensor('cord',sensors.cords, cords.length)"
               :class="(cords.length) ? 'cursor-pointer hover:bg-gray-100 text-gray-800 border-gray-400' : 'text-bootstrapGrey border-bootstrapGrey cursor-default'"
               class="block w-26 text-center bg-white mt-2 py-1 border rounded-full shadow no-underline text-sm">             
                <span v-if="sensors.cords == 0">Enable sensor</span>
@@ -152,6 +152,8 @@ export default {
       cords: [],
 
       temp: '',
+      emeterData: [],
+      totalMw: 0,
 
       sensors: {
         temp: 0,
@@ -170,7 +172,10 @@ export default {
   created() {
     this.checkTemp();
     this.getLists();
-    setInterval(this.checkTemp, 1000);
+    this.getCableData();
+
+    //setInterval(this.checkTemp, 1000);
+
   },
 
   methods: {
@@ -198,8 +203,114 @@ export default {
           } */
         });
     },
-    checkCord() {},
-    toggleSensor(type, status) {
+       freshCableUsage() {
+         if(!this.sensors.cords == 0){
+
+      Outlet.getToken().then(tokenRes => {
+        Outlet.outletGetList(tokenRes.data.result.token).then(resDevices => {
+          let arrDevices = resDevices.data.result.deviceList;
+
+          for (let i = 0; i < this.emeterData.length; i++) {
+            for (let o = 0; o < arrDevices.length; o++) {
+              if (arrDevices[o].deviceId == this.emeterData[i].device_id) {
+                Outlet.outletUsage(
+                  tokenRes.data.result.token,
+                  arrDevices[o].deviceId
+                ).then(resUsage => {
+
+                  this.totalMw = 0;
+                  let toParse = JSON.parse(resUsage.data.result.responseData);
+
+
+                    this.totalMw += Number(toParse.emeter.get_realtime.power_mw);
+
+
+                  this.emeterData[i].emeter.power_mw =
+                    toParse.emeter.get_realtime.power_mw;
+                });
+              }
+            }
+          }
+        });
+      });
+
+
+         } else {
+           return false
+         }
+
+    },
+
+    getCableData() {
+
+        Outlet.getToken().then(tokenRes => {
+        Outlet.outletGetList(tokenRes.data.result.token).then(resDevices => {
+          let arrDevices = resDevices.data.result.deviceList;
+
+          axios
+            .request({
+              baseURL: "http://localhost:8000/api/v1/devices",
+              method: "get"
+            })
+            .then(res => {
+              if (res.data.length) {
+                for (let i = 0; i < arrDevices.length; i++) {
+
+                    let apiDeviceId = arrDevices[i].deviceId;
+
+                    let objExCord = {
+                    device_id: apiDeviceId,
+                    name: arrDevices[i].alias,
+                    status: 0,
+                    emeter: {}
+                  };
+                    
+
+                  for (let o = 0; o < Object.keys(res.data).length; o++) {
+                    if (apiDeviceId == res.data[o].device_id) {
+                        if(res.data[o].category_id == 3){
+
+
+                  Outlet.outletInfo(
+                    tokenRes.data.result.token,
+                    apiDeviceId
+                  ).then(resState => {
+
+                    let toParse = JSON.parse(resState.data.result.responseData);
+                    objExCord.status = toParse.system.get_sysinfo.relay_state;
+
+                    Outlet.outletUsage(
+                      tokenRes.data.result.token,
+                      apiDeviceId
+                    ).then(resUsage => {
+                      let toParse = JSON.parse(
+                        resUsage.data.result.responseData
+                      );
+
+                      objExCord.emeter = toParse.emeter.get_realtime;
+
+                      this.totalMw += Number(toParse.emeter.get_realtime.power_mw);
+
+                      this.emeterData.push(objExCord);
+                    });
+                  });
+
+
+                        }
+                    }
+                  }
+
+                }
+              }
+            });
+        });
+      });
+
+    },
+
+    toggleSensor(type, status, hasDataBool) {
+if(hasDataBool == true){
+
 
                           if (type == 'temp') {
                               if(status == 0){
@@ -226,18 +337,22 @@ export default {
                                   
 
                             } else if(type == 'cord'){
-                              console.log('type == cord')
+
 
                                if(status == 0){
-                                  this.sensors.cords = 1 
+                                  this.sensors.cords = 1;
+                                  setInterval(this.freshCableUsage, 1000);
+
                               } else {
-                                  this.sensors.cords = 0
+
+
+                                  this.sensors.cords = 0;
 
                               }
 
                             } 
 
-      
+      }
     },
     getLists() {
 
