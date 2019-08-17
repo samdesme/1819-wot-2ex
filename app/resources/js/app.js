@@ -22,7 +22,6 @@ import VueApexCharts from 'vue-apexcharts'
 Vue.use(VueApexCharts, firestorePlugin)
 
 
-
 Vue.config.productionTip = false        
 Pusher.logToConsole = true;
 

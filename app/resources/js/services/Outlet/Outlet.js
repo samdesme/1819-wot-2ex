@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-
 class Outlet {
   
     
@@ -13,9 +12,7 @@ class Outlet {
             method: 'post',
             headers:{
                 "Content-Type": "application/json",
-               /*  "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 6.0.1; XXPhoneModelXX)",
-                "Connection": "Keep-Alive",
-                "Host": "eu-wap.tplinkcloud.com" */
+  
             },
             data: {
                 "method":"passthrough",
@@ -30,8 +27,8 @@ class Outlet {
 
     async getToken() {
 
-        let authEmail = "desmedtsam96@gmail.com";
-        let authPass = "Yusamy123!";
+        let authEmail = process.env.TP_LINK_EMAIL;
+        let authPass = process.env.TP_LINK_PASS;
 
 
         return axios.request({

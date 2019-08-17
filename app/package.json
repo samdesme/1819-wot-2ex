@@ -36,6 +36,8 @@
         "@fortawesome/vue-fontawesome": "^0.1.6",
         "apexcharts": "^3.8.3",
         "bootstrap-vue": "^2.0.0-rc.27",
+        "dotenv": "^8.0.0",
+        "dotenv-webpack": "^1.7.0",
         "firebase": "^6.3.3",
         "postcss-easy-import": "^3.0.0",
         "postcss-import": "^12.0.1",
