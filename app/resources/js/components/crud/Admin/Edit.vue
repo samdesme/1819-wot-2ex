@@ -5,7 +5,7 @@
       <div class="float-left relative bg-white m-6 px-6 pt-12 pb-6 w-full h-auto shadow-lg rounded-lg">
 
           <div class="m-auto w-2/3">
-                    <h2 class="text-3xl w-full text-center mb-6">Create new user</h2>
+                    <h2 class="text-3xl w-full text-center mb-6">Edit user</h2>
 
                                
                     <form action="w-full mb-12">
